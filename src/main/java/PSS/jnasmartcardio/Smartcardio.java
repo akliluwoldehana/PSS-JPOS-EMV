@@ -793,12 +793,12 @@ public class Smartcardio extends Provider {
 			if (card.protocol == JnaCardTerminal.SCARD_PROTOCOL_T0 && isExtendedApdu(command))
 				throw new CardException("Extended APDU requires T=1");
 
-			System.out.println("In transmitImpl");
+			
 			
 			command[0] = getClassByte(command[0], getChannelNumber());
 			ByteBuffer commandBuffer = ByteBuffer.wrap(command);
 
-			System.out.println("Original ByteBuffer:  " + Arrays.toString(commandBuffer.array()));
+			
 	
 			// Allocate memory if not given: 8K
 			if (response == null)
@@ -809,8 +809,8 @@ public class Smartcardio extends Provider {
 			for (int i=0; i<8; i++) {
 				int posBeforeTransmit = response.position();
 				// commandBuffer = ByteBuffer.wrap(command);
-				System.out.println("transmitImpl - In Loop");
-				System.out.println("In Loop ByteBuffer:  " + Arrays.toString(commandBuffer.array()));
+				// System.out.println("transmitImpl - In Loop");
+				// System.out.println("In Loop ByteBuffer:  " + Arrays.toString(commandBuffer.array()));
 
 				transmitRaw(commandBuffer, response);
 
@@ -821,13 +821,13 @@ public class Smartcardio extends Provider {
 				// break;
 				if ((byte)0x6c == sw1) {
 					
-					System.out.println("transmitImpl - In Loop - 0x6C");
+					// System.out.println("transmitImpl - In Loop - 0x6C");
 					command[command.length - 1] = sw2;
 					response.position(posBeforeTransmit);
 					commandBuffer.rewind();
 				} else if ((byte)0x61 == sw1) {
 
-					System.out.println("transmitImpl - In Loop - sw1 0x61, sw2 - " + sw2); //00C0000010
+					// System.out.println("transmitImpl - In Loop - sw1 0x61, sw2 - " + sw2); //00C0000010
 					// send Get Response command.
 					// Don't touch CLA as per 7816-4
 					command[0] = (byte) 0x00;
@@ -848,7 +848,7 @@ public class Smartcardio extends Provider {
 					// Roll back to overwrite current SW.
 					response.position(response.position() - 2);
 				} else {
-					System.out.println("transmitImpl - Break");
+					// System.out.println("transmitImpl - Break");
 					break;
 				}
 			}
@@ -879,7 +879,7 @@ public class Smartcardio extends Provider {
 			} else {
 				throw new IllegalStateException("Bad channel number; expected 0-19; got " + channelNumber);
 			}
-			System.out.println("============ CLA - " + cla);
+			// System.out.println("============ CLA - " + cla);
 			return (byte) cla;
 		}
 		private static ResponseAPDU convertResponse(ByteBuffer responseBuf) {

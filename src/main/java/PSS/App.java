@@ -123,9 +123,10 @@ public class App{
     }
 
     public static String Select_PSE(byte[] PSE) throws Exception{
-        System.out.println("\u001B[33m"+"Selecting PSE and Reading PSE records"+ "\u001B[0m");
+        System.out.println("\u001B[33m"+"Selecting PSE"+ "\u001B[0m");
         r = channel.transmit(new CommandAPDU(0x00, 0xA4, 0x04, 0x00, PSE,0x00));  
         tlvdecoder(bytesToHex(r.getData()));
+        System.out.println("\u001B[33m"+"Reading PSE record"+ "\u001B[0m");
         r = channel.transmit(new CommandAPDU(0x00, 0xB2, 0x01, 0x0C,0x1C));
         List<DecodedData> decoded = tlvdecoder(bytesToHex(r.getData()));
         String AID = decoded.get(0).getChild(0).getDecodedData();
