@@ -21,6 +21,11 @@ public class App{
     public static CardTerminals terminals;
     public static ResponseAPDU r;
 
+    public static String SUCCESSLOG = "\u001B[32m";
+    public static String WARRNINGLOG = "\u001B[33m";
+    public static String ERRORLOG = "\u001B[31m";
+    public static String RESETCOLORLOG = "\u001B[0m";
+
     public static void main(String args[]) throws Exception {
 
         
@@ -52,6 +57,7 @@ public class App{
         
         String AID = Select_PSE(pse);
         select_AID(AID);
+        GPO();
         card.disconnect(false);
 
        
@@ -123,10 +129,10 @@ public class App{
     }
 
     public static String Select_PSE(byte[] PSE) throws Exception{
-        System.out.println("\u001B[33m"+"Selecting PSE"+ "\u001B[0m");
+        System.out.println(SUCCESSLOG +"Selecting PSE"+ RESETCOLORLOG);
         r = channel.transmit(new CommandAPDU(0x00, 0xA4, 0x04, 0x00, PSE,0x00));  
         tlvdecoder(bytesToHex(r.getData()));
-        System.out.println("\u001B[33m"+"Reading PSE record"+ "\u001B[0m");
+        System.out.println(SUCCESSLOG +"Reading PSE record"+ RESETCOLORLOG);
         r = channel.transmit(new CommandAPDU(0x00, 0xB2, 0x01, 0x0C,0x1C));
         List<DecodedData> decoded = tlvdecoder(bytesToHex(r.getData()));
         String AID = decoded.get(0).getChild(0).getChild(0).getDecodedData();
@@ -135,11 +141,39 @@ public class App{
     }
     public static void select_AID(String AID) throws Exception {
       byte[] AIDb = HexFormat.of().parseHex(AID);
-       System.out.println("\u001B[33m" + "Selecting AID:"+AID+ "\u001B[0m");
+       System.out.println(SUCCESSLOG + "Selecting AID:"+AID+ RESETCOLORLOG);
        r = channel.transmit(new CommandAPDU(0x00,0xA4,0x04,0x00,AIDb,0x00)); 
       List<DecodedData> data = tlvdecoder(bytesToHex(r.getData()));
+
+      //check if PDOL exist
+
+      Tag Tag_PDOL = new Tag(HexFormat.of().parseHex("9F38"),true);
+      List<DecodedData> PDOL = data.get(0).findAllForTag(Tag_PDOL,data);
+      if(PDOL.size() != 0 ){
+      String PDOL_value = data.get(0).getChild(1).getChild(2).getChild(0).getDecodedData();
+      System.out.println(SUCCESSLOG + "PDOL exist" + RESETCOLORLOG);
+      System.out.println(SUCCESSLOG + "PDOL:"+PDOL_value + RESETCOLORLOG);
+      }else{
+       System.out.println(ERRORLOG + "NO PDOL" + RESETCOLORLOG);
+      }
       
     }
+    public static void GPO(byte[] PDOL) throws Exception {
+     r = channel.transmit(new CommandAPDU(0x80,0xA8,0x00,0x00,PDOL,0x00));
+     List<DecodedData> data = tlvdecoder(bytesToHex(r.getData()));
+    //  System.out.println(data)
 
-    // public static String GPO()
+    }
+
+    public static void GPO() throws Exception{
+     byte[] PDOL=HexFormat.of().parseHex("8300");
+     r = channel.transmit(new CommandAPDU(0x80,0xA8,0x00,0x00,PDOL,0x00));
+     List<DecodedData> data = tlvdecoder(bytesToHex(r.getData()));
+     System.out.println(data.get(0).getDecodedData());
+     String AIP = data.get(0).getDecodedData().substring(0,4);
+     String AFL = data.get(0).getDecodedData().substring(4,(data.get(0).getDecodedData().length()-1));
+     System.out.println(SUCCESSLOG + "AIP:"+AIP + RESETCOLORLOG);
+     System.out.println(SUCCESSLOG + "AFL:"+AFL + RESETCOLORLOG);
+
+    }
 }
