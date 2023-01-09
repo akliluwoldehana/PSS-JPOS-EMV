@@ -129,19 +129,17 @@ public class App{
         System.out.println("\u001B[33m"+"Reading PSE record"+ "\u001B[0m");
         r = channel.transmit(new CommandAPDU(0x00, 0xB2, 0x01, 0x0C,0x1C));
         List<DecodedData> decoded = tlvdecoder(bytesToHex(r.getData()));
-        String AID = decoded.get(0).getChild(0).getDecodedData();
-        String AIDLength = AID.substring(2,4);
-        AID = AID.substring(4,18);
-        System.out.println("AID-Length:"+AIDLength);
-        System.out.println("AID:"+AID);
+        String AID = decoded.get(0).getChild(0).getChild(0).getDecodedData();
+        System.out.println(AID);
         return AID; 
     }
     public static void select_AID(String AID) throws Exception {
       byte[] AIDb = HexFormat.of().parseHex(AID);
        System.out.println("\u001B[33m" + "Selecting AID:"+AID+ "\u001B[0m");
        r = channel.transmit(new CommandAPDU(0x00,0xA4,0x04,0x00,AIDb,0x00)); 
-        tlvdecoder(bytesToHex(r.getData()));
-
-
+      List<DecodedData> data = tlvdecoder(bytesToHex(r.getData()));
+      
     }
+
+    // public static String GPO()
 }
