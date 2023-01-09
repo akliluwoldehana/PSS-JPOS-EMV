@@ -49,8 +49,9 @@ public class App{
         channel = card.getBasicChannel();
         // channel = card.openLogicalChannel();
         byte[] pse =  HexFormat.of().parseHex("315041592E5359532E4444463031");//00 A4 04 00 315041592E5359532E4444463031
-
-        Select_PSE(pse);
+        
+        String AID = Select_PSE(pse);
+        select_AID(AID);
         card.disconnect(false);
 
        
@@ -113,31 +114,33 @@ public class App{
         
     }
 
-    public static List tlvdecoder(String data){
+    public static List<DecodedData> tlvdecoder(String data){
 
         
         List<DecodedData> decoded = new RootDecoder().decode(data, "EMV", "constructed");
         new DecodedWriter(System.out).write(decoded, "");
-        System.out.println("-----------------------------");
-        byte[] AID =  HexFormat.of().parseHex("4F");
-        //  Tag constructor(val bytes: List<Byte>, val compliant: Boolean = true)
-        Tag Aid = new Tag(AID,true);    
-        // findForTag(tag: Tag, decoded: List<DecodedData>): DecodedD
-
-       System.out.println(decoded.get(0).findForTag(Aid,decoded));
         return decoded;
     }
 
-    public static void Select_PSE(byte[] PSE) throws Exception{
-        System.out.print("Selecting PSE and Reading PSE records");
+    public static String Select_PSE(byte[] PSE) throws Exception{
+        System.out.println("\u001B[33m"+"Selecting PSE and Reading PSE records"+ "\u001B[0m");
         r = channel.transmit(new CommandAPDU(0x00, 0xA4, 0x04, 0x00, PSE,0x00));  
         tlvdecoder(bytesToHex(r.getData()));
         r = channel.transmit(new CommandAPDU(0x00, 0xB2, 0x01, 0x0C,0x1C));
+        List<DecodedData> decoded = tlvdecoder(bytesToHex(r.getData()));
+        String AID = decoded.get(0).getChild(0).getDecodedData();
+        String AIDLength = AID.substring(2,4);
+        AID = AID.substring(4,18);
+        System.out.println("AID-Length:"+AIDLength);
+        System.out.println("AID:"+AID);
+        return AID; 
+    }
+    public static void select_AID(String AID) throws Exception {
+      byte[] AIDb = HexFormat.of().parseHex(AID);
+       System.out.println("\u001B[33m" + "Selecting AID:"+AID+ "\u001B[0m");
+       r = channel.transmit(new CommandAPDU(0x00,0xA4,0x04,0x00,AIDb,0x00)); 
         tlvdecoder(bytesToHex(r.getData()));
-        // List<DecodedData> Decoded = tlvdecoder(bytesToHex(r.getData()));
-        // System.out.println(Decoded.findValueForTag("4F"));
 
-        
 
     }
 }
