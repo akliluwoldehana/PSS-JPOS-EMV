@@ -57,7 +57,16 @@ public class App{
         
         String AID = Select_PSE(pse);
         select_AID(AID);
-        GPO();
+        String AFL_string = GPO();
+        parseAFL(AFL_string);
+        // for (int sfi : SFI) {
+        //  System.out.println("SFI: " + sfi);
+        // }
+
+
+
+
+
         card.disconnect(false);
 
        
@@ -160,20 +169,47 @@ public class App{
     }
     public static void GPO(byte[] PDOL) throws Exception {
      r = channel.transmit(new CommandAPDU(0x80,0xA8,0x00,0x00,PDOL,0x00));
+     System.out.println("Row byte response GPO:" + bytesToHex(r.getBytes()));
      List<DecodedData> data = tlvdecoder(bytesToHex(r.getData()));
     //  System.out.println(data)
 
     }
 
-    public static void GPO() throws Exception{
+    public static String GPO() throws Exception{
      byte[] PDOL=HexFormat.of().parseHex("8300");
      r = channel.transmit(new CommandAPDU(0x80,0xA8,0x00,0x00,PDOL,0x00));
+     System.out.println("Row byte response GPO:" + bytesToHex(r.getBytes()));
      List<DecodedData> data = tlvdecoder(bytesToHex(r.getData()));
      System.out.println(data.get(0).getDecodedData());
      String AIP = data.get(0).getDecodedData().substring(0,4);
      String AFL = data.get(0).getDecodedData().substring(4,(data.get(0).getDecodedData().length()-1));
      System.out.println(SUCCESSLOG + "AIP:"+AIP + RESETCOLORLOG);
      System.out.println(SUCCESSLOG + "AFL:"+AFL + RESETCOLORLOG);
-
+     return AFL;
     }
+
+  public static void parseAFL(String aflString) {
+  
+//   System.out.println(aflString.substring(0,8));
+//   System.out.println(aflString.substring(8,16));
+//   System.out.println(aflString.substring(16,23));
+  byte[] aflData= aflString.getBytes(StandardCharsets. UTF_8); 
+  // Determine the number of records in the AFL
+int numRecords = aflData.length / 8;
+
+// Iterate over each record in the AFL
+for (int i = 0; i < numRecords; i++) {
+  // Extract the record from the AFL
+  byte[] record = Arrays.copyOfRange(aflData, i * 8, (i * 8) + 8);
+
+  // Parse the record
+  int sfi = ((record[0] & 0xFF) >> 3) & 0x1F;
+  int startRecord = record[2] & 0xFF;
+  int endRecord = record[3] & 0xFF;
+
+  // Output the parsed data for the record
+  System.out.println("Record " + (i + 1) + ": SFI=" + sfi + ", Start Record=" + startRecord + ", End Record=" + endRecord);
+}
+  
+  }
 }
